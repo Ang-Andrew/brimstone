@@ -3,7 +3,7 @@ module program_counter#(
 )(
   input wire clk,
   input wire reset,
-  input wire [DATA_WIDTH_P-1:0] i_count_next
+  input wire [DATA_WIDTH_P-1:0] i_count_next,
   output wire [DATA_WIDTH_P-1:0] o_count
 );
 
