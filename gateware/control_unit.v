@@ -5,13 +5,13 @@ module control_unit#(
 )(
   input wire [OP_WIDTH_P-1:0] i_opcode,
   input wire [FUNCT_WIDTH_P-1:0] i_function,
-  output wire o_reg_data_sel,
   output wire o_mem_wr_en,
   output wire o_branch,
   output wire [ALU_CNTRL_WIDTH_P-1:0] o_alu_cntrl,
   output wire o_alu_src_sel,
   output wire o_reg_wr_addr_sel,
-  output wire o_reg_wr_en
+  output wire o_reg_wr_en,
+  output wire o_reg_wr_data_sel,
 );
 
   //----------------------------------------------------------------------------
@@ -37,7 +37,7 @@ module control_unit#(
   reg [1:0] alu_op;
 
   // data memory control
-  reg reg_data_sel;
+  reg reg_wr_data_sel;
   reg mem_wr_en;
   reg branch;
 
@@ -63,7 +63,7 @@ module control_unit#(
   assign alu_decode_input = {alu_op,i_function};
 
   // output assignments
-  assign o_reg_data_sel     = reg_data_sel;
+  assign o_reg_wr_data_sel     = reg_wr_data_sel;
   assign o_mem_wr_en        = mem_wr_en;
   assign o_branch           = branch;
   assign o_alu_cntrl        = alu_cntrl;
@@ -86,7 +86,7 @@ module control_unit#(
         alu_src_sel       = 1'b0;
         branch            = 1'b0;
         mem_wr_en         = 1'b0;
-        reg_data_sel      = 1'b0;
+        reg_wr_data_sel      = 1'b0;
         alu_op            = 2'b10;
       end
       LW : begin
@@ -95,7 +95,7 @@ module control_unit#(
         alu_src_sel       = 1'b1;
         branch            = 1'b0;
         mem_wr_en         = 1'b0;
-        reg_data_sel      = 1'b1;
+        reg_wr_data_sel   = 1'b1;
         alu_op            = 2'b00;
       end
       LW : begin
@@ -104,7 +104,7 @@ module control_unit#(
         alu_src_sel       = 1'b1;
         branch            = 1'b0;
         mem_wr_en         = 1'b0;
-        reg_data_sel      = 1'b1;
+        reg_wr_data_sel   = 1'b1;
         alu_op            = 2'b00;
       end
       BEQ : begin
@@ -113,7 +113,7 @@ module control_unit#(
         alu_src_sel       = 1'b0;
         branch            = 1'b1;
         mem_wr_en         = 1'b0;
-        reg_data_sel      = 1'b0;
+        reg_wr_data_sel   = 1'b0;
         alu_op            = 2'b01;
       end
       default: begin
@@ -122,7 +122,7 @@ module control_unit#(
         alu_src_sel       = 1'b0;
         branch            = 1'b0;
         mem_wr_en         = 1'b0;
-        reg_data_sel      = 1'b0;
+        reg_wr_data_sel   = 1'b0;
         alu_op            = 2'b11; // invalid alu op code
       end
     endcase

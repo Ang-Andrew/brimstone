@@ -1,4 +1,4 @@
-module top#(
+module core#(
   parameter DATA_WIDTH_P = 32,
   parameter ADDR_WIDTH_P = 5,
   parameter CNTRL_WIDTH_P = 3,
@@ -9,6 +9,7 @@ module top#(
   input wire clk,
   input wire reset,
   input wire [DATA_WIDTH_P-1:0] i_instr,
+  input wire [DATA_WIDTH_P-1:0] i_rd_data,
 
   output wire [DATA_WIDTH_P-1:0] o_pc
 
@@ -30,12 +31,18 @@ module top#(
   reg [DATA_WIDTH_P-1:0] alu_in_b;
   reg [DATA_WIDTH_P-1:0] alu_out;
   
-  wire reg_data_sel;
+  wire reg_wr_data_sel;
   wire mem_wr_en;
   wire branch;
   wire alu_src_sel;
   wire reg_wr_addr_sel;
+  wire reg_wr_data;
+  wire reg_wr_addr;
   wire reg_wr_en;
+  wire alu_i_b_sel;
+  wire reg_rd_port_b;
+  wire beq_pc_jump;
+  wire zero_alu_result;
 
   //----------------------------------------------------------------------------
 
@@ -62,13 +69,13 @@ module top#(
   )(
     .i_opcode(i_instr[DATA_WIDTH_P-1:26]),
     .i_function(i_instr[5:0]),
-    .o_reg_data_sel(reg_data_sel),
     .o_mem_wr_en(mem_wr_en),
     .o_branch(),
     .o_alu_cntrl(alu_control),
     .o_alu_src_sel(alu_src_sel),
     .o_reg_wr_addr_sel(reg_wr_addr_sel),
-    .o_reg_wr_en(reg_wr_en));
+    .o_reg_wr_en(reg_wr_en),
+    .o_reg_wr_data_sel(reg_wr_data_sel));
 
   //----------------------------------------------------------------------------
 
@@ -84,10 +91,12 @@ module top#(
     .i_count_next(pc_next),
     .o_count(pc));
 
-  // next program counter logic
-  always @(pc) begin
-    pc_next = pc+1;
-  end
+  // BEQ logic
+  always @(sign_extend_imm,pc_next) begin
+    beq_pc_jump = pc + 4 + (sign_extend_imm << 2);
+  end;
+
+  assign pc_next = zero_alu_result and branch ? beq_pc_jump : pc + 4;
 
   //----------------------------------------------------------------------------
 
@@ -107,12 +116,18 @@ module top#(
     .i_wr_data(),
     .i_wr_enable(reg_wr_en),
     .o_rd_data_a(alu_in_a),
-    .o_rd_data_b());
+    .o_rd_data_b(reg_rd_port_b));
 
   // sign extension for LW
   always @(pc) begin
     sign_extend_imm = {{16{pc[DATA_WIDTH_P-1]}},pc}
   end
+
+  // write data select
+  assign reg_wr_data = reg_wr_data_sel ? i_rd_data : alu_out;
+
+  // write address select
+  assign reg_wr_addr = reg_wr_addr_sel ? i_instr[15:11] : i_instr[20:16];
 
   //----------------------------------------------------------------------------
 
@@ -132,6 +147,11 @@ module top#(
     .i_b(alu_in_b),
     .o_result(alu_out));
 
+  // src b select
+  assign alu_in_b = alu_src_sel ? reg_rd_port_b ; sign_extend_imm;
+
+  // zero detect
+  assign zero_alu_result = alu_out == DATA_WIDTH_P'b0 ? 1'b1 : 1'b0;
   //----------------------------------------------------------------------------
 
 endmodule
