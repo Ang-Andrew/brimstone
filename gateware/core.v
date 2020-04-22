@@ -1,5 +1,6 @@
 module core#(
   parameter DATA_WIDTH_P = 32,
+  parameter DATA_ADDR_WIDTH_P = 32;
   parameter ADDR_WIDTH_P = 5,
   parameter CNTRL_WIDTH_P = 3,
   parameter ALU_CNTRL_WIDTH_P = 3,
@@ -9,14 +10,14 @@ module core#(
   input wire clk,
   input wire reset,
   input wire [DATA_WIDTH_P-1:0] i_instr,
-  input wire [DATA_WIDTH_P-1:0] i_rd_data,
 
   output wire [DATA_WIDTH_P-1:0] o_pc
 
   // data memory interface
-  output wire o_mem_wr_en;
-  output wire o_mem_wr_addr;
-  output wire o_mem_wr_data);
+  input wire [DATA_WIDTH_P-1:0] i_mem rd_data,
+  output wire o_mem_wr_en,
+  output wire [DATA_ADDR_WIDTH_P-1:0] o_mem_wr_addr,
+  output wire [DATA_WIDTH_P-1:0] o_mem_wr_data);
 
   //----------------------------------------------------------------------------
   // register and wire instantiations
@@ -52,7 +53,7 @@ module core#(
   assign o_pc = pc;
 
   // data memory interface assignments
-  assign o_mem_wr_en = mem_wr_en;
+  assign o_mem_wr_en  = mem_wr_en;
   assign o_mem_wr_addr = alu_out;
   assign o_mem_wr_data = mem_wr_data;
 
@@ -70,7 +71,7 @@ module core#(
     .i_opcode(i_instr[DATA_WIDTH_P-1:26]),
     .i_function(i_instr[5:0]),
     .o_mem_wr_en(mem_wr_en),
-    .o_branch(),
+    .o_branch(branch),
     .o_alu_cntrl(alu_control),
     .o_alu_src_sel(alu_src_sel),
     .o_reg_wr_addr_sel(reg_wr_addr_sel),
@@ -112,15 +113,15 @@ module core#(
     .reset(reset),
     .i_rd_addr_a(i_instr[25:21]),
     .i_rd_addr_b(i_instr[20:16]),
-    .i_wr_addr(),
-    .i_wr_data(),
+    .i_wr_addr(reg_wr_addr),
+    .i_wr_data(reg_wr_data),
     .i_wr_enable(reg_wr_en),
     .o_rd_data_a(alu_in_a),
     .o_rd_data_b(reg_rd_port_b));
 
   // sign extension for LW
   always @(pc) begin
-    sign_extend_imm = {{16{pc[DATA_WIDTH_P-1]}},pc}
+    sign_extend_imm = {{16{pc[DATA_WIDTH_P-1]}},pc};
   end
 
   // write data select
