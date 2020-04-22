@@ -179,8 +179,12 @@ module control_unit#(
           8'b1x101010 : begin
             alu_cntrl = 3'111; // set less than (SLT) operation
           end
+          default : begin
+            alu_cntrl = 3'xxx; // invalid
         endcase
       end
+      default : begin
+        alu_cntrl = 3'xxx; // invalid
     endcase
   end
 
