@@ -42,7 +42,8 @@ module core#(
   wire reg_wr_en;
   wire alu_i_b_sel;
   wire reg_rd_port_b;
-  wire beq_pc_jump;
+  wire beq_pc;
+  wire j_type_jump;
   wire zero_alu_result;
 
   //----------------------------------------------------------------------------
@@ -76,7 +77,8 @@ module core#(
     .o_alu_src_sel(alu_src_sel),
     .o_reg_wr_addr_sel(reg_wr_addr_sel),
     .o_reg_wr_en(reg_wr_en),
-    .o_reg_wr_data_sel(reg_wr_data_sel));
+    .o_reg_wr_data_sel(reg_wr_data_sel),
+    .o_jump(j_jump));
 
   //----------------------------------------------------------------------------
 
@@ -94,10 +96,30 @@ module core#(
 
   // BEQ logic
   always @(sign_extend_imm,pc_next) begin
-    beq_pc_jump = pc + 4 + (sign_extend_imm << 2);
+    beq_pc = pc + 4 + (sign_extend_imm << 2);
   end;
 
-  assign pc_next = zero_alu_result and branch ? beq_pc_jump : pc + 4;
+  // JUMP logic
+  always @(i_instr) begin
+    j_jump = {(pc + 4)[DATA_WIDTH_P-1:26],i_instr[25:0] << 2};
+  end;
+
+  // next pc multiplexer
+  always @() begin
+    case({j_jump,zero_alu_result}) begin
+      2'b00 : begin
+        pc_next = pc + 4;
+      end
+      2'b01 : begin
+        pc_next = beq_pc;
+      end
+      2'b10 : begin
+        pc_next = j_jump;
+      end
+      default : begin
+        pc_next = pc + 4;
+    endcase
+  end;
 
   //----------------------------------------------------------------------------
 

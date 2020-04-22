@@ -12,7 +12,7 @@ module control_unit#(
   output wire o_reg_wr_addr_sel,
   output wire o_reg_wr_en,
   output wire o_reg_wr_data_sel,
-);
+  output wire o_jump);
 
   //----------------------------------------------------------------------------
   // local parameter declarations
@@ -28,7 +28,8 @@ module control_unit#(
     RTYPE : 6'b000000,
     LW    : 6'b100011,
     SW    : 6'b101011,
-    BEQ   : 6'b000100
+    BEQ   : 6'b000100,
+    JUMP  : 6'b000010
 
   //----------------------------------------------------------------------------
   // register and wire declarations
@@ -48,6 +49,9 @@ module control_unit#(
   // register file control
   reg reg_wr_addr_sel;
   reg reg_wr_en;
+  
+  // jump
+  reg jump;
 
   // alu decoder input which is a
   // concatenation of fucntion and alu operation
@@ -63,7 +67,7 @@ module control_unit#(
   assign alu_decode_input = {alu_op,i_function};
 
   // output assignments
-  assign o_reg_wr_data_sel     = reg_wr_data_sel;
+  assign o_reg_wr_data_sel  = reg_wr_data_sel;
   assign o_mem_wr_en        = mem_wr_en;
   assign o_branch           = branch;
   assign o_alu_cntrl        = alu_cntrl;
@@ -86,8 +90,9 @@ module control_unit#(
         alu_src_sel       = 1'b0;
         branch            = 1'b0;
         mem_wr_en         = 1'b0;
-        reg_wr_data_sel      = 1'b0;
+        reg_wr_data_sel   = 1'b0;
         alu_op            = 2'b10;
+        jump              = 1'b0;
       end
       LW : begin
         reg_wr_en         = 1'b1;
@@ -97,6 +102,7 @@ module control_unit#(
         mem_wr_en         = 1'b0;
         reg_wr_data_sel   = 1'b1;
         alu_op            = 2'b00;
+        jump              = 1'b0;
       end
       LW : begin
         reg_wr_en         = 1'b1;
@@ -106,6 +112,7 @@ module control_unit#(
         mem_wr_en         = 1'b0;
         reg_wr_data_sel   = 1'b1;
         alu_op            = 2'b00;
+        jump              = 1'b0;
       end
       BEQ : begin
         reg_wr_en         = 1'b0;
@@ -115,6 +122,17 @@ module control_unit#(
         mem_wr_en         = 1'b0;
         reg_wr_data_sel   = 1'b0;
         alu_op            = 2'b01;
+        jump              = 1'b0;
+      end
+      JUMP : begin
+        reg_wr_en         = 1'b0;
+        reg_wr_addr_sel   = 1'b0;
+        alu_src_sel       = 1'b0;
+        branch            = 1'b0;
+        mem_wr_en         = 1'b0;
+        reg_wr_data_sel   = 1'b0;
+        alu_op            = 2'b00;
+        jump              = 1'b1;
       end
       default: begin
         reg_wr_en         = 1'b0;
@@ -124,6 +142,7 @@ module control_unit#(
         mem_wr_en         = 1'b0;
         reg_wr_data_sel   = 1'b0;
         alu_op            = 2'b11; // invalid alu op code
+        jump              = 1'b1;
       end
     endcase
   end
