@@ -16,12 +16,12 @@ module test_core#(
 
   reg reset = 1'b0;
 
-  reg [DATA_WIDTH_P-1:0] pc;
-  reg [DATA_WIDTH_P-1:0] instr;
-  reg [DATA_WIDTH_P-1:0] mem_rd_data;
-  reg mem_wr_en;
-  reg [DATA_ADDR_WIDTH_P-1:0] mem_wr_addr;
-  reg [DATA_WIDTH_P-1:0] mem_wr_data;
+  wire [DATA_WIDTH_P-1:0] pc;
+  wire [DATA_WIDTH_P-1:0] instr;
+  wire [DATA_WIDTH_P-1:0] mem_rd_data;
+  wire mem_wr_en;
+  wire [DATA_ADDR_WIDTH_P-1:0] mem_addr;
+  wire [DATA_WIDTH_P-1:0] mem_wr_data;
   
   // clock generator
   always 
@@ -51,7 +51,7 @@ module test_core#(
     // data memory interface
     .i_mem_rd_data(mem_rd_data),
     .o_mem_wr_en(mem_wr_en),
-    .o_mem_wr_addr(mem_wr_addr),
+    .o_mem_addr(mem_addr),
     .o_mem_wr_data(mem_wr_data)
   );
   

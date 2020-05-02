@@ -4,7 +4,7 @@ TEST_SRCS = $(wildcard $(DIR)/test/*.v)
 TEST = $(basename $(shell basename $(TEST_SRCS)))
 GUI ?= 0
 
-.PHONY: $(TEST) clean
+.PHONY: $(TEST) clean project
 
 $(TEST):
 	xvlog $(SRCS) $(TEST_SRCS)

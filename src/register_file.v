@@ -1,8 +1,8 @@
 module register_file#(
   parameter DATA_WIDTH_P = 32,
   parameter ADDR_WIDTH_P = 5,
-  parameter DEPTH_P = 32
-)(
+  parameter DEPTH_P = 32)
+(
   //----------------------------------------------------------------------------
   // inputs
   //----------------------------------------------------------------------------

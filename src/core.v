@@ -16,22 +16,22 @@ module core#(
   // data memory interface
   input wire [DATA_WIDTH_P-1:0] i_mem_rd_data,
   output wire o_mem_wr_en,
-  output wire [DATA_ADDR_WIDTH_P-1:0] o_mem_wr_addr,
+  output wire [DATA_ADDR_WIDTH_P-1:0] o_mem_addr,
   output wire [DATA_WIDTH_P-1:0] o_mem_wr_data);
 
   //----------------------------------------------------------------------------
   // register and wire instantiations
   //----------------------------------------------------------------------------
 
-  reg [DATA_WIDTH_P-1:0] pc;
+  wire [DATA_WIDTH_P-1:0] pc;
   wire [DATA_WIDTH_P-1:0] pc_add;
   reg [DATA_WIDTH_P-1:0] pc_next;
   reg [DATA_WIDTH_P-1:0] sign_extend_imm;
 
-  reg [ALU_CNTRL_WIDTH_P-1:0] alu_control;
-  reg [DATA_WIDTH_P-1:0] alu_in_a;
+  wire [ALU_CNTRL_WIDTH_P-1:0] alu_control;
+  wire [DATA_WIDTH_P-1:0] alu_in_a;
   wire [DATA_WIDTH_P-1:0] alu_in_b;
-  reg [DATA_WIDTH_P-1:0] alu_out;
+  wire [DATA_WIDTH_P-1:0] alu_out;
 
   reg [DATA_WIDTH_P-1:0] mem_wr_data;
   
@@ -58,7 +58,7 @@ module core#(
 
   // data memory interface assignments
   assign o_mem_wr_en  = mem_wr_en;
-  assign o_mem_wr_addr = alu_out;
+  assign o_mem_addr = alu_out;
   assign o_mem_wr_data = mem_wr_data;
 
   //----------------------------------------------------------------------------
