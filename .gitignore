@@ -1,0 +1,20 @@
+# Vivado artifacts #
+###################
+*.jou 
+*.log 
+xsim.* 
+xelab.* 
+xvlog.* 
+sim.wdb
+xsim.dir
+*.str
+
+# Visual studio code Workspace file # 
+#####################################
+*.code-workspace
+
+# Junk # 
+#####################################
+*.zip
+*.log
+buid/
