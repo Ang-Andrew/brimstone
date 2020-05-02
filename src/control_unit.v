@@ -17,19 +17,20 @@ module control_unit#(
   //----------------------------------------------------------------------------
   // local parameter declarations
   //----------------------------------------------------------------------------
+  
+  localparam[1:0] ADD       = 2'b00;  // add
+  localparam[1:0] SUB       = 2'b01;  // subtract
+  localparam[1:0] LOOK      = 2'b10;  // look at funct field value
+  localparam[1:0] INVALID   = 2'b11;  // invalid
 
-  localparam[1:0]
-    ADD       : 2'b00,  // add
-    SUB       : 2'b01,  // subtract
-    LOOK      : 2'b10,  // look at funct field value
-    INVALID   : 2'b11;  // invalid
+  
+  localparam[OP_WIDTH_P-1:0] RTYPE  = 6'b000000;
+  localparam[OP_WIDTH_P-1:0] LW     = 6'b100011;
+  localparam[OP_WIDTH_P-1:0] SW     = 6'b101011;
+  localparam[OP_WIDTH_P-1:0] BEQ    = 6'b000100;
+  localparam[OP_WIDTH_P-1:0] JUMP   = 6'b000010;
 
-  localparam[OP_WIDTH_P-1:0]
-    RTYPE : 6'b000000,
-    LW    : 6'b100011,
-    SW    : 6'b101011,
-    BEQ   : 6'b000100,
-    JUMP  : 6'b000010
+  localparam ALU_DECODE_WIDTH = FUNCT_WIDTH_P+2;
 
   //----------------------------------------------------------------------------
   // register and wire declarations
@@ -43,8 +44,8 @@ module control_unit#(
   reg branch;
 
   // alu control
-  reg [ALU_CNTRL_WIDTH_P-1:0] alu_cntrl
-  reg alu_src_sel,
+  reg [ALU_CNTRL_WIDTH_P-1:0] alu_cntrl;
+  reg alu_src_sel;
 
   // register file control
   reg reg_wr_addr_sel;
@@ -55,7 +56,7 @@ module control_unit#(
 
   // alu decoder input which is a
   // concatenation of fucntion and alu operation
-  wire [FUNCT_WIDTH_P+2-1:0] alu_decode_input;
+  wire [ALU_DECODE_WIDTH-1:0] alu_decode_input;
 
   //----------------------------------------------------------------------------
 
@@ -156,35 +157,14 @@ module control_unit#(
   
   always @(alu_decode_input) begin
     case(alu_decode_input)
-      8'b00xxxxxx : begin
-        alu_cntrl = 3'010; // requires add operation
-      end
-      8'bx1xxxxxx : begin
-        alu_cntrl = 3'110; // requries sub operation
-      end
-      8'b1xxxxxxx : begin
-        case(alu_decode_input)
-          8'b1x100000 : begin
-            alu_cntrl = 3'010; // add operation
-          end
-          8'b1x100010 : begin
-            alu_cntrl = 3'110; // subtraction operation
-          end
-          8'b1x100100 : begin
-            alu_cntrl = 3'000; // and operatoin
-          end
-          8'b1x100101 : begin
-            alu_cntrl = 3'001; // or operation
-          end
-          8'b1x101010 : begin
-            alu_cntrl = 3'111; // set less than (SLT) operation
-          end
-          default : begin
-            alu_cntrl = 3'xxx; // invalid
-        endcase
-      end
-      default : begin
-        alu_cntrl = 3'xxx; // invalid
+      8'b00xxxxxx : alu_cntrl = 3'b010; // requires add operation
+      8'bx1xxxxxx : alu_cntrl = 3'b110; // requries sub operation
+      8'b1x100000 : alu_cntrl = 3'b010; // add operation
+      8'b1x100010 : alu_cntrl = 3'b110; // subtraction operation
+      8'b1x100100 : alu_cntrl = 3'b000; // and operation
+      8'b1x100101 : alu_cntrl = 3'b001; // or operation
+      8'b1x101010 : alu_cntrl = 3'b111; // set less than (SLT) operation
+      default                    : alu_cntrl = 3'bxxx; // invalid
     endcase
   end
 

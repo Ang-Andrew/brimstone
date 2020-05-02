@@ -16,17 +16,17 @@ module register_file#(
   //----------------------------------------------------------------------------
   // outputs
   //----------------------------------------------------------------------------
-  output wire [DATA_WIDTH_P-1:0] o_rd_data_a
-  output wire [DATA_WIDTH_P-1:0] o_rd_data_b,
+  output wire [DATA_WIDTH_P-1:0] o_rd_data_a,
+  output wire [DATA_WIDTH_P-1:0] o_rd_data_b
 );
 
   //----------------------------------------------------------------------------
   // register and wire instantiations
   //----------------------------------------------------------------------------
 
-  reg [DATA_WIDTH_P-1:0] rd_data_a
-  reg [DATA_WIDTH_P-1:0] rd_data_b
-  reg [DATA_WIDTH_P-1:0] memory [DEPTH_P-1:0]
+  reg [DATA_WIDTH_P-1:0] rd_data_a;
+  reg [DATA_WIDTH_P-1:0] rd_data_b;
+  reg [DATA_WIDTH_P-1:0] memory [DEPTH_P-1:0];
 
   //----------------------------------------------------------------------------
 
@@ -58,13 +58,13 @@ module register_file#(
   always @(posedge clk) begin
     if (reset) begin
       // reset everything
-      for(i=0,i<DEPTH_P-1;i=i+1) begin
-        memory[i] <= {DATA_WIDTH_P{1'b0}}
+      for(i=0;i<DEPTH_P-1;i=i+1) begin
+        memory[i] <= {DATA_WIDTH_P{1'b0}};
       end;
     end else if (i_wr_enable) begin
       memory[i_wr_addr] <= i_wr_data;
     end;
   end
   //----------------------------------------------------------------------------
-end module
+endmodule
 

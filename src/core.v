@@ -1,6 +1,6 @@
 module core#(
   parameter DATA_WIDTH_P = 32,
-  parameter DATA_ADDR_WIDTH_P = 32;
+  parameter DATA_ADDR_WIDTH_P = 32,
   parameter ADDR_WIDTH_P = 5,
   parameter CNTRL_WIDTH_P = 3,
   parameter ALU_CNTRL_WIDTH_P = 3,
@@ -11,10 +11,10 @@ module core#(
   input wire reset,
   input wire [DATA_WIDTH_P-1:0] i_instr,
 
-  output wire [DATA_WIDTH_P-1:0] o_pc
+  output wire [DATA_WIDTH_P-1:0] o_pc,
 
   // data memory interface
-  input wire [DATA_WIDTH_P-1:0] i_mem rd_data,
+  input wire [DATA_WIDTH_P-1:0] i_mem_rd_data,
   output wire o_mem_wr_en,
   output wire [DATA_ADDR_WIDTH_P-1:0] o_mem_wr_addr,
   output wire [DATA_WIDTH_P-1:0] o_mem_wr_data);
@@ -24,13 +24,16 @@ module core#(
   //----------------------------------------------------------------------------
 
   reg [DATA_WIDTH_P-1:0] pc;
+  wire [DATA_WIDTH_P-1:0] pc_add;
   reg [DATA_WIDTH_P-1:0] pc_next;
   reg [DATA_WIDTH_P-1:0] sign_extend_imm;
 
   reg [ALU_CNTRL_WIDTH_P-1:0] alu_control;
   reg [DATA_WIDTH_P-1:0] alu_in_a;
-  reg [DATA_WIDTH_P-1:0] alu_in_b;
+  wire [DATA_WIDTH_P-1:0] alu_in_b;
   reg [DATA_WIDTH_P-1:0] alu_out;
+
+  reg [DATA_WIDTH_P-1:0] mem_wr_data;
   
   wire reg_wr_data_sel;
   wire mem_wr_en;
@@ -64,11 +67,11 @@ module core#(
   // Control unit
   //----------------------------------------------------------------------------
 
-  control_unit cntrl_unit_i#(
+  control_unit #(
     .ALU_CNTRL_WIDTH_P(ALU_CNTRL_WIDTH_P),
     .FUNCT_WIDTH_P(FUNCT_WIDTH_P),
-    .OP_WIDTH_P(OP_WIDTH_P)
-  )(
+    .OP_WIDTH_P(OP_WIDTH_P))
+  cntrl_unit_i(
     .i_opcode(i_instr[DATA_WIDTH_P-1:26]),
     .i_function(i_instr[5:0]),
     .o_mem_wr_en(mem_wr_en),
@@ -78,7 +81,7 @@ module core#(
     .o_reg_wr_addr_sel(reg_wr_addr_sel),
     .o_reg_wr_en(reg_wr_en),
     .o_reg_wr_data_sel(reg_wr_data_sel),
-    .o_jump(j_jump));
+    .o_jump(j_type_jump));
 
   //----------------------------------------------------------------------------
 
@@ -86,40 +89,32 @@ module core#(
   // program counter
   //----------------------------------------------------------------------------
 
-  program_counter pc_i #(
-    .DATA_WIDTH_P(DATA_WIDTH_P)
-  )(
+  program_counter #(
+    .DATA_WIDTH_P(DATA_WIDTH_P))
+  pc_i(
     .clk(clk),
     .reset(reset),
     .i_count_next(pc_next),
     .o_count(pc));
 
+  assign pc_add = pc + 4;
+
   // BEQ logic
-  always @(sign_extend_imm,pc_next) begin
-    beq_pc = pc + 4 + (sign_extend_imm << 2);
-  end;
+  assign beq_pc = pc_add + (sign_extend_imm << 2);
 
   // JUMP logic
-  always @(i_instr) begin
-    j_jump = {(pc + 4)[DATA_WIDTH_P-1:26],i_instr[25:0] << 2};
-  end;
+
+  assign j_type_jump = {pc_add[DATA_WIDTH_P-1:26],i_instr[25:0] << 2};
 
   // next pc multiplexer
-  always @() begin
-    case({j_jump,zero_alu_result}) begin
-      2'b00 : begin
-        pc_next = pc + 4;
-      end
-      2'b01 : begin
-        pc_next = beq_pc;
-      end
-      2'b10 : begin
-        pc_next = j_jump;
-      end
-      default : begin
-        pc_next = pc + 4;
+  always @(j_type_jump, zero_alu_result, pc_add,beq_pc, j_type_jump) begin
+    case({j_type_jump,zero_alu_result})
+      2'b00 : pc_next = pc_add;
+      2'b01 : pc_next = beq_pc;
+      2'b10 : pc_next = j_type_jump;
+      default : pc_next = pc_add;
     endcase
-  end;
+  end
 
   //----------------------------------------------------------------------------
 
@@ -127,10 +122,10 @@ module core#(
   // register file
   //----------------------------------------------------------------------------
 
-  register_fie reg_i #(
+  register_file #(
     .DATA_WIDTH_P(DATA_WIDTH_P),
-    .ADDR_WIDTH_P(ADDR_WIDTH_P)
-  )(
+    .ADDR_WIDTH_P(ADDR_WIDTH_P))
+  reg_i (
     .clk(clk),
     .reset(reset),
     .i_rd_addr_a(i_instr[25:21]),
@@ -147,7 +142,7 @@ module core#(
   end
 
   // write data select
-  assign reg_wr_data = reg_wr_data_sel ? i_rd_data : alu_out;
+  assign reg_wr_data = reg_wr_data_sel ? i_mem_rd_data : alu_out;
 
   // write address select
   assign reg_wr_addr = reg_wr_addr_sel ? i_instr[15:11] : i_instr[20:16];
@@ -158,11 +153,11 @@ module core#(
   // ALU
   //----------------------------------------------------------------------------
 
-  alu alu_i #(
+  alu #(
     .DATA_WIDTH_P(DATA_WIDTH_P),
     .ADDR_WIDTH_P(ADDR_WIDTH_P),
-    .CNTRL_WIDTH_P(ALU_CNTRL_WIDTH_P)
-  )(  
+    .CNTRL_WIDTH_P(ALU_CNTRL_WIDTH_P))
+  alu_i(  
     .clk(clk),
     .reset(reset),
     .i_control(alu_control),
@@ -171,10 +166,10 @@ module core#(
     .o_result(alu_out));
 
   // src b select
-  assign alu_in_b = alu_src_sel ? reg_rd_port_b ; sign_extend_imm;
+  assign alu_in_b = alu_src_sel ? reg_rd_port_b : sign_extend_imm;
 
   // zero detect
-  assign zero_alu_result = alu_out == DATA_WIDTH_P'b0 ? 1'b1 : 1'b0;
+  assign zero_alu_result = alu_out == {DATA_ADDR_WIDTH_P[1'b0]} ? 1'b1 : 1'b0;
   //----------------------------------------------------------------------------
 
 endmodule
