@@ -1,4 +1,5 @@
 module register_file#(
+  parameter MEM_INIT_FILE = "register_file.mem",
   parameter DATA_WIDTH_P = 32,
   parameter ADDR_WIDTH_P = 5,
   parameter DEPTH_P = 32)
@@ -26,7 +27,7 @@ module register_file#(
 
   reg [DATA_WIDTH_P-1:0] rd_data_a;
   reg [DATA_WIDTH_P-1:0] rd_data_b;
-  reg [DATA_WIDTH_P-1:0] memory [DEPTH_P-1:0];
+  reg [DATA_WIDTH_P-1:0] memory [0:DEPTH_P-1];
 
   //----------------------------------------------------------------------------
 
@@ -37,6 +38,16 @@ module register_file#(
   assign o_rd_data_a = rd_data_a;
   assign o_rd_data_b = rd_data_b;
 
+  //----------------------------------------------------------------------------
+
+  //----------------------------------------------------------------------------
+  // read process
+  //----------------------------------------------------------------------------
+  initial begin
+    if (MEM_INIT_FILE != "") begin
+      $readmemh(MEM_INIT_FILE, memory);
+    end
+  end
   //----------------------------------------------------------------------------
 
   //----------------------------------------------------------------------------

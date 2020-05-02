@@ -40,16 +40,16 @@ module control_unit#(
 
   // data memory control
   reg reg_wr_data_sel;
-  reg mem_wr_en;
-  reg branch;
+  reg mem_wr_en = 0;
+  reg branch = 0;
 
   // alu control
   reg [ALU_CNTRL_WIDTH_P-1:0] alu_cntrl;
-  reg alu_src_sel;
+  reg alu_src_sel = 0;
 
   // register file control
   reg reg_wr_addr_sel;
-  reg reg_wr_en;
+  reg reg_wr_en = 0;
   
   // jump
   reg jump;
@@ -105,7 +105,7 @@ module control_unit#(
         alu_op            = 2'b00;
         jump              = 1'b0;
       end
-      LW : begin
+      SW : begin
         reg_wr_en         = 1'b1;
         reg_wr_addr_sel   = 1'b0;
         alu_src_sel       = 1'b1;
@@ -156,15 +156,15 @@ module control_unit#(
   //----------------------------------------------------------------------------
   
   always @(alu_decode_input) begin
-    case(alu_decode_input)
-      8'b00xxxxxx : alu_cntrl = 3'b010; // requires add operation
-      8'bx1xxxxxx : alu_cntrl = 3'b110; // requries sub operation
-      8'b1x100000 : alu_cntrl = 3'b010; // add operation
-      8'b1x100010 : alu_cntrl = 3'b110; // subtraction operation
-      8'b1x100100 : alu_cntrl = 3'b000; // and operation
-      8'b1x100101 : alu_cntrl = 3'b001; // or operation
-      8'b1x101010 : alu_cntrl = 3'b111; // set less than (SLT) operation
-      default                    : alu_cntrl = 3'bxxx; // invalid
+    casez(alu_decode_input)
+      8'b00?????? : alu_cntrl = 3'b010; // requires add operation
+      8'b?1?????? : alu_cntrl = 3'b110; // requries sub operation
+      8'b1?100000 : alu_cntrl = 3'b010; // add operation
+      8'b1?100010 : alu_cntrl = 3'b110; // subtraction operation
+      8'b1?100100 : alu_cntrl = 3'b000; // and operation
+      8'b1?100101 : alu_cntrl = 3'b001; // or operation
+      8'b1?101010 : alu_cntrl = 3'b111; // set less than (SLT) operation
+      default     : alu_cntrl = 3'bxxx; // invalid
     endcase
   end
 

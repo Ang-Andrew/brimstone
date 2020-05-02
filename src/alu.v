@@ -20,7 +20,7 @@ module alu#(
   reg [DATA_WIDTH_P-1:0] result;
 
   // operation decoder
-  always @(i_control) begin
+  always @(i_control,i_a,i_b) begin
     case(i_control)
       OP_ADD  : result = i_a + i_b; // add
       OP_SUB  : result = i_a - i_b; // sub
