@@ -40,11 +40,11 @@ module core#(
   wire branch;
   wire alu_src_sel;
   wire reg_wr_addr_sel;
-  wire reg_wr_data;
-  wire reg_wr_addr;
+  wire [DATA_WIDTH_P-1:0] reg_wr_data;
+  wire [ADDR_WIDTH_P-1:0] reg_wr_addr;
   wire reg_wr_en;
   wire alu_i_b_sel;
-  wire reg_rd_port_b;
+  wire [DATA_WIDTH_P-1:0] reg_rd_port_b;
   wire beq_pc;
   wire j_type_jump;
   wire zero_alu_result;
