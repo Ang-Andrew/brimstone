@@ -137,8 +137,8 @@ module core#(
     .o_rd_data_b(reg_rd_port_b));
 
   // sign extension for LW
-  always @(pc) begin
-    sign_extend_imm = {{16{pc[DATA_WIDTH_P-1]}},pc};
+  always @(i_instr) begin
+    sign_extend_imm = {{16{i_instr[15]}},i_instr[15:0]};
   end
 
   // write data select
@@ -166,7 +166,7 @@ module core#(
     .o_result(alu_out));
 
   // src b select
-  assign alu_in_b = alu_src_sel ? reg_rd_port_b : sign_extend_imm;
+  assign alu_in_b = alu_src_sel ? sign_extend_imm : reg_rd_port_b;
 
   // zero detect
   assign zero_alu_result = alu_out == {DATA_ADDR_WIDTH_P[1'b0]} ? 1'b1 : 1'b0;

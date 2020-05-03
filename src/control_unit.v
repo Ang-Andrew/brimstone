@@ -28,6 +28,7 @@ module control_unit#(
   localparam[OP_WIDTH_P-1:0] LW     = 6'b100011;
   localparam[OP_WIDTH_P-1:0] SW     = 6'b101011;
   localparam[OP_WIDTH_P-1:0] BEQ    = 6'b000100;
+  localparam[OP_WIDTH_P-1:0] ADDI   = 6'b001000;
   localparam[OP_WIDTH_P-1:0] JUMP   = 6'b000010;
 
   localparam ALU_DECODE_WIDTH = FUNCT_WIDTH_P+2;
@@ -123,6 +124,16 @@ module control_unit#(
         mem_wr_en         = 1'b0;
         reg_wr_data_sel   = 1'b0;
         alu_op            = 2'b01;
+        jump              = 1'b0;
+      end
+      ADDI : begin
+        reg_wr_en         = 1'b1;
+        reg_wr_addr_sel   = 1'b0;
+        alu_src_sel       = 1'b1;
+        branch            = 1'b0;
+        mem_wr_en         = 1'b0;
+        reg_wr_data_sel   = 1'b0;
+        alu_op            = 2'b00;
         jump              = 1'b0;
       end
       JUMP : begin

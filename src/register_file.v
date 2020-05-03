@@ -41,8 +41,9 @@ module register_file#(
   //----------------------------------------------------------------------------
 
   //----------------------------------------------------------------------------
-  // read process
+  // intialise memory
   //----------------------------------------------------------------------------
+  integer j;
   initial begin
     if (MEM_INIT_FILE != "") begin
       $readmemh(MEM_INIT_FILE, memory);
@@ -53,11 +54,9 @@ module register_file#(
   //----------------------------------------------------------------------------
   // read process
   //----------------------------------------------------------------------------
-  always @(posedge clk) begin
-    if (!i_wr_enable) begin
-      rd_data_a <= memory[i_rd_addr_a];
-      rd_data_b <= memory[i_rd_addr_b];
-    end
+  always @(*) begin
+    rd_data_a <= memory[i_rd_addr_a];
+    rd_data_b <= memory[i_rd_addr_b];
   end
 
   //----------------------------------------------------------------------------
