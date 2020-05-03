@@ -91,11 +91,11 @@ module test_core#(
     @(posedge clk)
     instr = 32'h2067fff7; //         addi  $7, $3, -9             initialize $7 = 3
     @(posedge clk)
-    instr = 32'h00e22025; //         or    $4, $7, $2             $4 <= 3 or 5 = 7
+    instr = 32'h00e22025; //         or    $4, $7, $2             $4 <- 3 or 5 = 7
     @(posedge clk)
-    instr = 32'h00642824; //         and   $5, $3, $4             $5 <= 12 and 7 = 4
+    instr = 32'h00642824; //         and   $5, $3, $4             $5 <- 12 and 7 = 4
     @(posedge clk)
-    instr = 32'h00a42820; //         add   $5, $5, $4             $5 = 4 + 7 < 11
+    instr = 32'h00a42820; //         add   $5, $5, $4             $5 <- 4 + 7 = 11
     @(posedge clk)
     instr = 32'h10a7000a; //         beq   $5, $7, end            shouldn’t be taken
     @(posedge clk)
