@@ -43,7 +43,6 @@ module register_file#(
   //----------------------------------------------------------------------------
   // intialise memory
   //----------------------------------------------------------------------------
-  integer j;
   initial begin
     if (MEM_INIT_FILE != "") begin
       $readmemh(MEM_INIT_FILE, memory);

@@ -76,6 +76,7 @@ module control_unit#(
   assign o_alu_src_sel      = alu_src_sel;
   assign o_reg_wr_addr_sel  = reg_wr_addr_sel;
   assign o_reg_wr_en        = reg_wr_en;
+  assign o_jump             = jump;
 
   //----------------------------------------------------------------------------
 
@@ -107,12 +108,12 @@ module control_unit#(
         jump              = 1'b0;
       end
       SW : begin
-        reg_wr_en         = 1'b1;
+        reg_wr_en         = 1'b0;
         reg_wr_addr_sel   = 1'b0;
         alu_src_sel       = 1'b1;
         branch            = 1'b0;
-        mem_wr_en         = 1'b0;
-        reg_wr_data_sel   = 1'b1;
+        mem_wr_en         = 1'b1;
+        reg_wr_data_sel   = 1'b0;
         alu_op            = 2'b00;
         jump              = 1'b0;
       end

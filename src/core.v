@@ -1,4 +1,5 @@
 module core#(
+  parameter PROGRAM_MEMORY_P = "",
   parameter DATA_WIDTH_P = 32,
   parameter DATA_ADDR_WIDTH_P = 32,
   parameter ADDR_WIDTH_P = 5,
@@ -9,9 +10,6 @@ module core#(
 )(
   input wire clk,
   input wire reset,
-  input wire [DATA_WIDTH_P-1:0] i_instr,
-
-  output wire [DATA_WIDTH_P-1:0] o_pc,
 
   // data memory interface
   input wire [DATA_WIDTH_P-1:0] i_mem_rd_data,
@@ -23,17 +21,22 @@ module core#(
   // register and wire instantiations
   //----------------------------------------------------------------------------
 
-  wire [DATA_WIDTH_P-1:0] pc;
+  // note in MIPS programs are normally stored at starting address 0x00400000
+  reg [DATA_WIDTH_P-1:0] pc = 32'h00000000;
   wire [DATA_WIDTH_P-1:0] pc_add;
-  reg [DATA_WIDTH_P-1:0] pc_next;
+  reg [DATA_WIDTH_P-1:0] pc_next = 32'h00000000;
   reg [DATA_WIDTH_P-1:0] sign_extend_imm;
+
+  wire [DATA_WIDTH_P-1:0] instr;
 
   wire [ALU_CNTRL_WIDTH_P-1:0] alu_control;
   wire [DATA_WIDTH_P-1:0] alu_in_a;
   wire [DATA_WIDTH_P-1:0] alu_in_b;
   wire [DATA_WIDTH_P-1:0] alu_out;
 
-  reg [DATA_WIDTH_P-1:0] mem_wr_data;
+  reg [DATA_WIDTH_P-1:0] mem_wr_data = {DATA_WIDTH_P[1'b0]};
+
+  reg [31:0] program_memory [0:255];
   
   wire reg_wr_data_sel;
   wire mem_wr_en;
@@ -43,10 +46,10 @@ module core#(
   wire [DATA_WIDTH_P-1:0] reg_wr_data;
   wire [ADDR_WIDTH_P-1:0] reg_wr_addr;
   wire reg_wr_en;
-  wire alu_i_b_sel;
   wire [DATA_WIDTH_P-1:0] reg_rd_port_b;
-  wire beq_pc;
-  wire j_type_jump;
+  wire [DATA_WIDTH_P-1:0] beq_pc;
+  wire [DATA_WIDTH_P-1:0] j_type_jump;
+  wire jump;
   wire zero_alu_result;
 
   //----------------------------------------------------------------------------
@@ -54,12 +57,11 @@ module core#(
   //----------------------------------------------------------------------------
   // assignments
   //----------------------------------------------------------------------------
-  assign o_pc = pc;
 
   // data memory interface assignments
   assign o_mem_wr_en  = mem_wr_en;
   assign o_mem_addr = alu_out;
-  assign o_mem_wr_data = mem_wr_data;
+  assign o_mem_wr_data = reg_rd_port_b;
 
   //----------------------------------------------------------------------------
 
@@ -72,8 +74,8 @@ module core#(
     .FUNCT_WIDTH_P(FUNCT_WIDTH_P),
     .OP_WIDTH_P(OP_WIDTH_P))
   cntrl_unit_i(
-    .i_opcode(i_instr[DATA_WIDTH_P-1:26]),
-    .i_function(i_instr[5:0]),
+    .i_opcode(instr[DATA_WIDTH_P-1:26]),
+    .i_function(instr[5:0]),
     .o_mem_wr_en(mem_wr_en),
     .o_branch(branch),
     .o_alu_cntrl(alu_control),
@@ -81,7 +83,7 @@ module core#(
     .o_reg_wr_addr_sel(reg_wr_addr_sel),
     .o_reg_wr_en(reg_wr_en),
     .o_reg_wr_data_sel(reg_wr_data_sel),
-    .o_jump(j_type_jump));
+    .o_jump(jump));
 
   //----------------------------------------------------------------------------
 
@@ -89,13 +91,14 @@ module core#(
   // program counter
   //----------------------------------------------------------------------------
 
-  program_counter #(
-    .DATA_WIDTH_P(DATA_WIDTH_P))
-  pc_i(
-    .clk(clk),
-    .reset(reset),
-    .i_count_next(pc_next),
-    .o_count(pc));
+  // counter process
+  always @(posedge clk) begin
+    if (reset) begin
+      pc <= 32'h00000000;
+    end else begin
+      pc <= pc_next;
+    end;
+  end
 
   assign pc_add = pc + 4;
 
@@ -103,18 +106,32 @@ module core#(
   assign beq_pc = pc_add + (sign_extend_imm << 2);
 
   // JUMP logic
-
-  assign j_type_jump = {pc_add[DATA_WIDTH_P-1:26],i_instr[25:0] << 2};
+  assign j_type_jump = {pc_add[DATA_WIDTH_P-1:28],instr[25:0],2'b00};
 
   // next pc multiplexer
-  always @(j_type_jump, zero_alu_result, pc_add,beq_pc, j_type_jump) begin
-    case({j_type_jump,zero_alu_result})
+  always @(*) begin
+    case({jump,branch & zero_alu_result})
       2'b00 : pc_next = pc_add;
       2'b01 : pc_next = beq_pc;
       2'b10 : pc_next = j_type_jump;
       default : pc_next = pc_add;
     endcase
   end
+
+  //----------------------------------------------------------------------------
+
+  //----------------------------------------------------------------------------
+  // program memory
+  //----------------------------------------------------------------------------
+
+  // program memory (combinatorial reads), 32 bit word addressable only
+  initial begin
+    if (PROGRAM_MEMORY_P != "") begin
+      $readmemh(PROGRAM_MEMORY_P, program_memory);
+    end
+  end
+
+  assign instr = program_memory[pc[DATA_WIDTH_P-1:2]];
 
   //----------------------------------------------------------------------------
 
@@ -128,8 +145,8 @@ module core#(
   reg_i (
     .clk(clk),
     .reset(reset),
-    .i_rd_addr_a(i_instr[25:21]),
-    .i_rd_addr_b(i_instr[20:16]),
+    .i_rd_addr_a(instr[25:21]),
+    .i_rd_addr_b(instr[20:16]),
     .i_wr_addr(reg_wr_addr),
     .i_wr_data(reg_wr_data),
     .i_wr_enable(reg_wr_en),
@@ -137,15 +154,15 @@ module core#(
     .o_rd_data_b(reg_rd_port_b));
 
   // sign extension for LW
-  always @(i_instr) begin
-    sign_extend_imm = {{16{i_instr[15]}},i_instr[15:0]};
+  always @(instr) begin
+    sign_extend_imm = {{16{instr[15]}},instr[15:0]};
   end
 
   // write data select
   assign reg_wr_data = reg_wr_data_sel ? i_mem_rd_data : alu_out;
 
   // write address select
-  assign reg_wr_addr = reg_wr_addr_sel ? i_instr[15:11] : i_instr[20:16];
+  assign reg_wr_addr = reg_wr_addr_sel ? instr[15:11] : instr[20:16];
 
   //----------------------------------------------------------------------------
 
@@ -157,7 +174,7 @@ module core#(
     .DATA_WIDTH_P(DATA_WIDTH_P),
     .ADDR_WIDTH_P(ADDR_WIDTH_P),
     .CNTRL_WIDTH_P(ALU_CNTRL_WIDTH_P))
-  alu_i(  
+  alu_i(
     .clk(clk),
     .reset(reset),
     .i_control(alu_control),
@@ -170,6 +187,7 @@ module core#(
 
   // zero detect
   assign zero_alu_result = alu_out == {DATA_ADDR_WIDTH_P[1'b0]} ? 1'b1 : 1'b0;
+
   //----------------------------------------------------------------------------
 
 endmodule
