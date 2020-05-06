@@ -10,6 +10,7 @@ module core#(
 )(
   input wire clk,
   input wire reset,
+  input wire i_enable,
 
   // data memory interface
   input wire [DATA_WIDTH_P-1:0] i_mem_rd_data,
@@ -37,6 +38,7 @@ module core#(
   reg [DATA_WIDTH_P-1:0] mem_wr_data = {DATA_WIDTH_P[1'b0]};
 
   reg [31:0] program_memory [0:255];
+  reg enable_d = 1'b0;
   
   wire reg_wr_data_sel;
   wire mem_wr_en;
@@ -95,9 +97,10 @@ module core#(
   always @(posedge clk) begin
     if (reset) begin
       pc <= 32'h00000000;
-    end else begin
+    end else if (enable_d) begin
       pc <= pc_next;
     end;
+    enable_d <= i_enable;
   end
 
   assign pc_add = pc + 4;
