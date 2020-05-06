@@ -28,6 +28,8 @@ module test_core#(
   wire [DATA_WIDTH_P-1:0] mem_wr_data;
 
   reg [DATA_WIDTH_P-1:0] data_memory [0:255];
+
+  reg enable = 1'b0;
   
   // clock generator
   always 
@@ -50,6 +52,7 @@ module test_core#(
   UUT(
     .clk(clk),
     .reset(reset),
+    .i_enable(enable),
 
     // data memory interface
     .i_mem_rd_data(mem_rd_data),
@@ -87,6 +90,8 @@ module test_core#(
     // # David_Harris@hmc.edu 9 November 2005
     //-------------------------------------------------------------------------
     @(posedge clk)
+    #0.001
+    enable = 1'b1;
 
     //--------------------------------------------------------------------------
 
