@@ -13,6 +13,9 @@ This repository contains verilog sources along with a simulation testbench. The 
 | scripts/       | Common scripts                      |
 | Makefile       | Main Makefile for running testbench |
 
+## Dependencies
+Requires [Icarus Verilog](https://iverilog.fandom.com/wiki/Installation_Guide)
+
 ## Simulation
 
 | Test      | Description                                                                                                                   |
