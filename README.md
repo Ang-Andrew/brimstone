@@ -2,7 +2,7 @@
 
 ![Simulation](https://github.com/Ang-Andrew/brimstone/workflows/simulation/badge.svg)
 
-This repository contains verilog sources along with a simulation testbench. The overall architecture is based on *Digital Design and Computer Architecture* by David Harris.
+This repository contains verilog sources along with a simulation testbench. The overall architecture is based on [*Digital Design and Computer Architecture*](https://dl.acm.org/doi/book/10.5555/2381028) by David Harris.
 
 ## Overview
 
