@@ -43,10 +43,11 @@ module register_file#(
   //----------------------------------------------------------------------------
   // intialise memory
   //----------------------------------------------------------------------------
+  integer j;
   initial begin
-    if (MEM_INIT_FILE != "") begin
-      $readmemh(MEM_INIT_FILE, memory);
-    end
+    for(j=0;j<DEPTH_P;j=j+1) begin
+      memory[j] <= {DATA_WIDTH_P{1'b0}};
+    end;
   end
   //----------------------------------------------------------------------------
 
