@@ -19,7 +19,7 @@ This repository contains verilog sources along with a simulation testbench. The 
 |-----------|-------------------------------------------------------------------------------------------------------------------------------|
 | test_core | Simple testbench that test various MIPs operations. Based on example provided by *Digital Design and Computer Architecture*   |
 
-An individual test can be perform by doing:
+An individual test can be perform by running:
 ```bash
 make <test>
 ```
