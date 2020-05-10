@@ -10,7 +10,7 @@ module test_core();
   localparam OP_WIDTH_P = 6;
   localparam DATA_MEM_INIT_FILE = "data_memory_test.mem";
   localparam PROGRAM_MEMORY_P = "test_program_memory.mem";
-  localparam DEBUG_P = 1;
+  localparam DEBUG_P = 0;
 
   // duration for each bit -> 25 MHz -> 40ns
   reg clk;
