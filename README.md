@@ -1,8 +1,8 @@
 # Brimstone : implementation of a single-cycle MIPs processor
 
-![Simulation](https://github.com/Ang-Andrew/resume/workflows/simulation/badge.svg?branch=master)
+![Simulation](https://github.com/Ang-Andrew/brimstone/workflows/simulation/badge.svg)
 
-This repository contains verilog sources along with a simulation testbenche. The overall architecture is based on *Digital Design and Computer Architecture* by David Harris.
+This repository contains verilog sources along with a simulation testbench. The overall architecture is based on *Digital Design and Computer Architecture* by David Harris.
 
 ## Overview
 
