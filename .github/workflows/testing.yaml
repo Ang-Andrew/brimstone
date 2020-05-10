@@ -8,5 +8,7 @@ jobs:
     steps:
       - name: Install iverilog
         run: sudo apt-get install iverilog
+      - name: Set up brimstone repo
+        uses: actions/checkout@v1
       - name: Run all testbenches
         run: make
