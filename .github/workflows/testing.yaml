@@ -7,6 +7,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install iverilog
-        uses: sudo apt-get install iverlog
+        run: sudo apt-get install iverlog
       - name: Run all testbenches
         run: make
