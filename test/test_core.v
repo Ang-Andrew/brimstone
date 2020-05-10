@@ -1,6 +1,5 @@
 `timescale 1ns/1ps
-module test_core#(
-)();
+module test_core();
   // local parameters
   localparam DATA_WIDTH_P = 32;
   localparam DATA_ADDR_WIDTH_P = 32;
@@ -11,6 +10,7 @@ module test_core#(
   localparam OP_WIDTH_P = 6;
   localparam DATA_MEM_INIT_FILE = "data_memory_test.mem";
   localparam PROGRAM_MEMORY_P = "test_program_memory.mem";
+  localparam DEBUG_P = 1;
 
   // duration for each bit -> 25 MHz -> 40ns
   reg clk;
@@ -20,7 +20,6 @@ module test_core#(
   reg reset = 1'b0;
 
   wire [DATA_WIDTH_P-1:0] pc;
-  // reg [DATA_WIDTH_P-1:0] instr;
   reg [DATA_WIDTH_P-1:0] rd_data = {DATA_WIDTH_P{1'b0}};
   reg [DATA_WIDTH_P-1:0] mem_rd_data;
   wire mem_wr_en;
@@ -30,6 +29,8 @@ module test_core#(
   reg [DATA_WIDTH_P-1:0] data_memory [0:255];
 
   reg enable = 1'b0;
+
+  reg [DATA_WIDTH_P-1:0] address_84 = {DATA_WIDTH_P{1'b0}};
   
   // clock generator
   always 
@@ -62,9 +63,14 @@ module test_core#(
   );
 
   // data memory emulator
+  integer j;
   initial begin
     if (DATA_MEM_INIT_FILE != "") begin
       $readmemh(DATA_MEM_INIT_FILE, data_memory);
+    end else begin
+      for(j=0;j<256;j=j+1) begin
+        data_memory[j] <= {DATA_WIDTH_P{1'b0}};
+      end;
     end
   end
 
@@ -78,9 +84,15 @@ module test_core#(
   // read process
   always @(*) begin
     mem_rd_data = data_memory[mem_addr];
+    address_84 = data_memory[84];
   end
 
   initial begin
+    if (DEBUG_P == 1) begin
+      $dumpfile ("test_core.vcd");
+      $dumpvars(0, test_core); 
+    end;
+    $display("Starting MIPs test");
     #period
     //--------------------------------------------------------------------------
     // # Test the MIPS processor.
@@ -95,9 +107,17 @@ module test_core#(
 
     //--------------------------------------------------------------------------
 
-    #40000
-    $display("done");
-    $stop;   // end of simulation
+    #741.400
+
+    if (address_84 == 7) begin
+      $display("test passed");
+      $finish;
+    end else begin
+      $display("test failed, address 84 : %b",address_84);
+      $stop;
+    end;
+    // $display("done");
+    // $finish;   // end of simulation
   end
 
 endmodule

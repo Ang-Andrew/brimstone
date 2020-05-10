@@ -8,7 +8,8 @@ module brimestone#(
   parameter OP_WIDTH_P = 6
 )(
   input wire clk,
-  input wire reset
+  input wire reset,
+  input wire i_enable
 );
 
   wire mem_wr_en;
@@ -38,11 +39,8 @@ module brimestone#(
   core_i(
     .clk(clk),
     .reset(reset),
-    .i_instr(instr),
+    .i_enable(i_enable),
 
-    // instruction memory interface
-    .o_pc(pc),
-    
     // data memory interface
     .i_mem_rd_data(mem_rd_data),
     .o_mem_wr_en(mem_wr_en),
