@@ -26,4 +26,4 @@ An individual test can be perform by running:
 ```bash
 make <test>
 ```
-Running `make` runs all test in the `test/` directory with the name `test_*.v`
+Running `make` runs all tests in the `test/` directory with the name `test_*.v`
